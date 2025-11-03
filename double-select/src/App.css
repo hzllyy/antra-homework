@@ -1,0 +1,11 @@
+.item__header {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+form {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
