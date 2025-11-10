@@ -1,76 +1,49 @@
-import './App.css'
+import './App.css';
 import { useState, useEffect } from 'react';
-import { getTodos, addTodo as addTodoAPI, deleteTodo as deleteTodoAPI, updateTodo as updateTodoAPI } from "./apis.jsx";
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchTodos, createTodo, deleteTodo, editTodo } from './slices/todoSlice';
 import Input from './_components/input.jsx';
 import Buttons from './_components/buttons.jsx';
 
 function Lists() {
+  const dispatch = useDispatch();
+  const todos = useSelector(state => state.todo.data);
+  const isLoading = useSelector(state => state.todo.isLoading);
 
-  const [todos, setTodos] = useState([]);
   const [editId, setEditId] = useState(null);
   const [editValue, setEditValue] = useState("");
-  
+
   useEffect(() => {
-    async function fetchTodos() {
-      try {
-        const data = await getTodos();
-        setTodos(data);
-      } catch (err) {
-        console.error("Failed to fetch todos:", err)
-      }
-    }
-    fetchTodos();
-  }, []);
+    dispatch(fetchTodos());
+  }, [dispatch]);
 
-  async function handleAddTodo(title) {
-    try {
-      const newTodo = {
-        todo: title,
-        completed: false,
-        id : Date.now()
-      }
-      const savedTodo = await addTodoAPI(newTodo);
-      setTodos([...todos, savedTodo]);
-    } catch (err) {
-      console.error("Failed to add todo:", err)
-    }
-  }
+  const handleAddTodo = (title) => {
+    dispatch(createTodo(title));
+  };
 
-  async function deleteTodo(id) {
-    try {
-      await deleteTodoAPI(id);
-      setTodos(todos.filter((todo) => (todo.id !== id)));
-    } catch (err) {
-      console.error("Failed to delete todo:", err);
-    }
-  }
+  const handleDelete = (id) => {
+    dispatch(deleteTodo(id));
+  };
 
-  function startEdit(id, currentTitle) {
+  const startEdit = (id, currentTitle) => {
     setEditId(id);
     setEditValue(currentTitle);
-  }
+  };
 
-  async function saveEdit(id) {
-    try {
-      const updatedTodo = await updateTodoAPI(id, { todo: editValue });
-      setTodos(prevTodos => prevTodos.map(todo => todo.id === id ? updatedTodo : todo));
-      setEditId(null);
-    } catch (err) {
-      console.error("Failed to update todo:", err);
-    }
-  }
+  const saveEdit = (id) => {
+    dispatch(editTodo({ id, updatedTodo: { todo: editValue } }));
+    setEditId(null);
+    setEditValue("");
+  };
 
-  async function onToggle(id, currentStatus) {
-    try {
-      const updatedTodo = await updateTodoAPI(id, { completed: !currentStatus });
-      setTodos(prevTodos => prevTodos.map(todo => todo.id === id ? updatedTodo : todo))
-    } catch (err) {
-      console.error("Failed to toggle todo:", err);
-    }
-  }
+  const toggleComplete = (id, completed) => {
+    dispatch(editTodo({ id, updatedTodo: { completed: !completed } }));
+  };
 
-  const incompleteTodos = todos.filter((todo) => (todo.completed === false));
-  const completeTodos = todos.filter((todo) => (todo.completed === true));
+  const incompleteTodos = todos.filter(todo => !todo.completed);
+  const completeTodos = todos.filter(todo => todo.completed);
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div>
@@ -103,7 +76,7 @@ function Lists() {
                  editId={editId}
                  editValue={editValue}
                  saveEdit={saveEdit}
-                 onToggle={onToggle}/>
+                 onToggle={toggleComplete}/>
               </li>
             )}
           </ul>
@@ -123,7 +96,7 @@ function Lists() {
                  editId={editId}
                  editValue={editValue}
                  saveEdit={saveEdit}
-                 onToggle={onToggle}
+                 onToggle={toggleComplete}
                  >
                   {editId === todo.id ? (
                     <input 
