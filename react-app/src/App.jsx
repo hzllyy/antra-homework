@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchTodos, createTodo, deleteTodo, editTodo } from './slices/todoSlice';
 import Input from './_components/input.jsx';
 import Buttons from './_components/buttons.jsx';
+import Throttle from "./throttle.jsx";
 
 function Lists() {
   const dispatch = useDispatch();
@@ -111,7 +112,8 @@ function Lists() {
             )}
           </ul>
         </div>
-      </div>  
+      </div> 
+      <Throttle /> 
     </div>
   )
 }
